@@ -1,23 +1,29 @@
-import express from "express";
-import multer from "multer";
-import cors from "cors";
-
+const express = require("express");
+const multer = require("multer");
+const axios = require("axios");
+const fs = require("fs");
+const FormData = require("form-data");
 const app = express();
 const upload = multer({ dest: "uploads/" });
 
-app.use(cors());
+app.post("/api/emotion-detect", upload.single("audio"), async (req, res) => {
+  const audioPath = req.file.path;
 
-app.get("/api/test", (req, res) => {
-  res.send("API is live!");
+  try {
+    const form = new FormData();
+    form.append("audio", fs.createReadStream(audioPath));
+
+    const response = await axios.post("http://127.0.0.1:5000", form, {
+      headers: form.getHeaders(),
+    });
+
+    fs.unlinkSync(audioPath); // Cleanup uploaded file
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-app.post("/api/emotion-detect", upload.single("audio"), (req, res) => {
-  if (!req.file) return res.status(400).send("No file uploaded.");
-  console.log("Received file:", req.file.originalname);
-  res.json({ emotion: "happy" }); // stub response
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log("Server started on port", PORT);
+app.listen(10000, () => {
+  console.log("Server started on port 10000");
 });
