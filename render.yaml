@@ -2,8 +2,11 @@ services:
   - type: web
     name: wellnessconnect-backend
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: FLASK_ENV
         value: production
+    pythonVersion: 3.13  # Specify the desired Python version
